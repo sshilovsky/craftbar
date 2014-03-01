@@ -91,6 +91,7 @@ char *atom_names[] = {
 	"_NET_WM_DESKTOP",
 	"_NET_WM_NAME",
 	"UTF8_STRING",
+	"_NET_CLIENT_LIST_STACKING"
 };
 
 #define ATOM_COUNT (sizeof (atom_names) / sizeof (atom_names[0]))
@@ -117,6 +118,7 @@ Atom atoms[ATOM_COUNT];
 #define atom__NET_WM_DESKTOP atoms[17]
 #define atom__NET_WM_NAME atoms[18]
 #define atom_UTF8_STRING atoms[19]
+#define atom__NET_CLIENT_LIST_STACKING atoms[20]
 
 
 void *
@@ -802,6 +804,7 @@ taskbar_read_clientlist (taskbar * tb)
 
 	XGetInputFocus (dd, &focus_win, &rev);
 
+    // TODO check only the one detected to be supported
 	/* try unified window spec first */
 	win = get_prop_data (root_win, atom__NET_CLIENT_LIST, XA_WINDOW, &num);
 	if (!win)
@@ -809,7 +812,12 @@ taskbar_read_clientlist (taskbar * tb)
 		/* failed, let's try gnome */
 		win = get_prop_data (root_win, atom__WIN_CLIENT_LIST, XA_CARDINAL, &num);
 		if (!win)
-			return;
+        {
+            /* failed, let's try another unified one */
+            win = get_prop_data (root_win, atom__NET_CLIENT_LIST_STACKING, XA_WINDOW, &num);
+            if (!win)
+                return;
+        }
 	}
 
 	/* remove windows that aren't in the _WIN_CLIENT_LIST anymore */
@@ -1003,16 +1011,12 @@ handle_propertynotify (taskbar * tb, Window win, Atom at)
 	{
 		if (wm_use_ewmh)
 		{
+            // TODO check only the one detected to be supported.
+            // this primarily refers *_CLIENT_LIST* properties
 			if (at == atom__NET_CLIENT_LIST ||
-			    at == atom__NET_CURRENT_DESKTOP)
-			{
-				taskbar_read_clientlist (tb);
-				gui_draw_taskbar (tb);
-			}
-		}
-		else
-		{
-			if (at == atom__WIN_CLIENT_LIST ||
+			    at == atom__NET_CLIENT_LIST_STACKING ||
+			    at == atom__NET_CURRENT_DESKTOP ||
+			    at == atom__WIN_CLIENT_LIST ||
 			    at == atom__WIN_WORKSPACE)
 			{
 				taskbar_read_clientlist (tb);
