@@ -1,10 +1,10 @@
 CC = cc
 C_FLAGS = -DHAVE_XPM -Wall -O1 -I/usr/X11R6/include
 L_FLAGS = -L/usr/X11R6/lib -lX11 -lXpm
-PROGNAME = fspanel
+PROGNAME = craftbar
 
-$(PROGNAME): Makefile fspanel.c fspanel.h icon.xpm
-	$(CC) $(C_FLAGS) $(L_FLAGS) fspanel.c -o $(PROGNAME)
+$(PROGNAME): Makefile craftbar.c craftbar.h icon.xpm
+	$(CC) $(C_FLAGS) $(L_FLAGS) craftbar.c -o $(PROGNAME)
 	strip $(PROGNAME)
 	@ls -l $(PROGNAME)
 
