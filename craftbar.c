@@ -87,7 +87,7 @@ char *atom_names[] = {
 	"_NET_WM_STATE_ABOVE",
 	"_NET_SUPPORTED",
 	"_NET_WM_WINDOW_TYPE",
-	"_NET_WM_WINDOW_TYPE_DESKTOP",
+	"_NET_WM_WINDOW_TYPE_DOCK",
 	"_NET_WM_DESKTOP",
 	"_NET_WM_NAME",
 	"UTF8_STRING",
@@ -113,7 +113,7 @@ Atom atoms[ATOM_COUNT];
 #define atom__NET_WM_STATE_ABOVE atoms[13]
 #define atom__NET_SUPPORTED atoms[14]
 #define atom__NET_WM_WINDOW_TYPE atoms[15]
-#define atom__NET_WM_WINDOW_TYPE_DESKTOP atoms[16]
+#define atom__NET_WM_WINDOW_TYPE_DOCK atoms[16]
 #define atom__NET_WM_DESKTOP atoms[17]
 #define atom__NET_WM_NAME atoms[18]
 #define atom_UTF8_STRING atoms[19]
@@ -442,7 +442,7 @@ gui_create_taskbar (void)
 		XChangeProperty (dd, win,
 		                 atom__NET_WM_WINDOW_TYPE, XA_ATOM, 32,
 		                 PropModeReplace,
-		                 (unsigned char *) &atom__NET_WM_WINDOW_TYPE_DESKTOP, 1);
+		                 (unsigned char *) &atom__NET_WM_WINDOW_TYPE_DOCK, 1);
 	}
 	else
 	{
