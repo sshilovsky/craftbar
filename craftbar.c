@@ -22,6 +22,7 @@
 #endif
 
 #include "craftbar.h"
+#include "cfg.h"
 
 /* you can edit these */
 #define MAX_TASK_WIDTH 145
@@ -1037,7 +1038,7 @@ void get_offending_modifiers()
 }
 
 static const int digits[] =
-    { XK_1, XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_0 };
+    { BINDABLE_KEYS };
 const int digits_size = sizeof(digits) / sizeof(digits[0]);	// SUDDENLY 10
 
 void grab_keys()
@@ -1056,11 +1057,11 @@ void grab_keys()
 			    | (i & 4 ? numlock_mask : 0);
 
 			XGrabKey(dd, keycode,
-				 ControlMask | modifiers, root_win,
+				 BIND_MASK | modifiers, root_win,
 				 False, GrabModeAsync, GrabModeAsync);
 
 			XGrabKey(dd, keycode,
-				 Mod1Mask | modifiers, root_win,
+				 USE_MASK | modifiers, root_win,
 				 False, GrabModeAsync, GrabModeAsync);
 		}
 	}
