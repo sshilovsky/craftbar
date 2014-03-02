@@ -1,5 +1,5 @@
 CC = gcc
-C_FLAGS = -DHAVE_XPM -Wall -I/usr/X11R6/include
+C_FLAGS = -DHAVE_XPM -Wall -I/usr/X11R6/include -std=c99
 L_FLAGS = -L/usr/X11R6/lib -lX11 -lXpm
 EXTRA_CFLAGS = -g -Os
 PROGNAME = craftbar
