@@ -21,9 +21,11 @@
 #include "icon.xpm"
 #endif
 
+#include "khash.h"
+
+KHASH_MAP_INIT_INT(Window, Window)
 #include "craftbar.h"
 #include "cfg.h"
-
 /* you can edit these */
 #define MAX_TASK_WIDTH 145
 #define ICONWIDTH 16
@@ -31,12 +33,10 @@
 #define WINHEIGHT 24
 #define WINWIDTH (scr_width)
 #define FONT_NAME "-*-lucida*-m*-r-*-*-12-*-*"
-
 /* don't edit these */
 #define TEXTPAD 6
 #define left_arrow_x 25
 #define right_arrow_x 50
-
 Display *dd;
 Window root_win;
 /* WM supports EWMH
@@ -57,6 +57,7 @@ int scr_width;
 int scr_height;
 int text_y;
 /*int time_width;*/
+khash_t(Window) * bindings;
 
 unsigned short cols[] = {
 	0xd75c, 0xd75c, 0xd75c,	/* 0. light gray */
@@ -93,7 +94,7 @@ char *atom_names[] = {
 	"_NET_WM_NAME",
 	"UTF8_STRING",
 	"_NET_CLIENT_LIST_STACKING",
-    "_NET_ACTIVE_WINDOW"
+	"_NET_ACTIVE_WINDOW"
 };
 
 #define ATOM_COUNT (sizeof (atom_names) / sizeof (atom_names[0]))
@@ -910,6 +911,7 @@ void handle_press(taskbar * tb, int x, int y)
 					XSetInputFocus(dd, tk->win,
 						       RevertToNone,
 						       CurrentTime);
+                    // TODO switch desktop
 				}
 			}
 			gui_sync();
@@ -1000,6 +1002,62 @@ unsigned int numlock_mask = 0;
 unsigned int scrolllock_mask = 0;
 unsigned int capslock_mask = 0;
 
+void handle_keypress(taskbar * tb, XKeyEvent * ev)
+{
+	unsigned int keycode = ev->keycode;
+	unsigned int modifiers = ev->state;
+
+	// never consider capslock, numlock, scrolllock
+	modifiers &= ~(capslock_mask | numlock_mask | scrolllock_mask);
+
+	if (modifiers == USE_MASK) {
+		/* If this key was remembered, try to raise and focus the window bound
+		   to it. If unable to do that, forget the key */
+		khiter_t k = kh_get(Window, bindings, keycode);
+		if (k == kh_end(bindings))
+			return;
+
+		Window w = kh_value(bindings, k);
+
+        /* switch current desktop to the window */
+        int desktop = -1;
+		void* data = get_prop_data(w, atom__NET_WM_DESKTOP, XA_CARDINAL, 0);
+        if(data) {
+            desktop = *(int*)data;
+            XFree(data);
+        }
+        if(desktop != -1) {
+            XEvent ev;
+            memset(&ev, 0, sizeof(ev));
+            ev.xclient.type = ClientMessage;
+            ev.xclient.window = root_win;
+            ev.xclient.message_type = atom__NET_CURRENT_DESKTOP;
+            ev.xclient.format = 32;
+            ev.xclient.data.l[0] = desktop;
+            XSendEvent(dd, root_win, 0, PropertyChangeMask, &ev);
+        }
+
+        /* raise and focus the window */
+		XMapWindow(dd, w);
+		XRaiseWindow(dd, w);
+		XSetInputFocus(dd, w, RevertToNone, CurrentTime);
+	}
+
+	if (modifiers == BIND_MASK) {
+		/* Remember this key to be bound to active window */
+		Window focused;
+		int rev, t;
+		khiter_t k = kh_put(Window, bindings, keycode, &t);
+
+		XGetInputFocus(dd, &focused, &rev);
+		if (focused) {
+			kh_value(bindings, k) = focused;
+		}
+
+		return;
+	}
+}
+
 void get_offending_modifiers()
 {
 	/* pulled from xbindkeys */
@@ -1037,8 +1095,8 @@ void get_offending_modifiers()
 		XFreeModifiermap(modmap);
 }
 
-static const int digits[] =
-    { BINDABLE_KEYS };
+static const int digits[] = { BINDABLE_KEYS };
+
 const int digits_size = sizeof(digits) / sizeof(digits[0]);	// SUDDENLY 10
 
 void grab_keys()
@@ -1074,6 +1132,7 @@ _start(void)
 main(int argc, char *argv[])
 #endif
 {
+	bindings = kh_init(Window);
 	taskbar *tb;
 	XEvent ev;
 	fd_set fd;
@@ -1144,7 +1203,7 @@ main(int argc, char *argv[])
 						      ev.xproperty.atom);
 				break;
 			case KeyPress:
-				// TODO implement activity
+				handle_keypress(tb, &ev.xkey);
 				break;
 			case FocusIn:
 				handle_focusin(tb, ev.xfocus.window);
