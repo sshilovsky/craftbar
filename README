@@ -1,3 +1,29 @@
+CraftBar
+~~~~~~~~
+
+This is a proof-of-concept attempt to implement Blizzard(R)'s *Craft-like
+digit bindings for X11 windows.
+
+Ctrl+[0-9] binds a window to a digit.
+
+Alt+[0-9] switches to a previously bound window.
+
+You can easyly modify default bindings in cfg.h which is as large as 3
+significant lines of code.
+
+BUGS
+~~~~
+* desktop switching to the bound window is not implemented for i3-wm and other
+  non-ewmh-compliant managers.
+* the task bar itself behaves really strange.
+
+This piece of code was started from fspanel which happend to be really small
+but turned to have been dead since about 2000 A.D. So please don't blame me for
+buttons jumping or icons not showing :)
+
+
+Original fspanel README follows:
+
 F***ing Small Panel
 ~~~~~~~~~~~~~~~~~~~
 
