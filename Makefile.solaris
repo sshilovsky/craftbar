@@ -1,0 +1,14 @@
+CC = gcc
+C_FLAGS = -O2 -I/usr/include/X11 -I/usr/X11/include
+L_FLAGS = -Xlinker -s -L/usr/X/lib -L/usr/X11/lib -lX11
+PROGNAME = craftbar
+
+$(PROGNAME): Makefile craftbar.c craftbar.h icon.xpm
+	$(CC) $(C_FLAGS) $(L_FLAGS) craftbar.c -o $(PROGNAME)
+	@ls -l $(PROGNAME)
+
+clean: 
+	rm -f core *.o $(PROGNAME) nohup.out
+
+install: $(PROGNAME)
+	cp $(PROGNAME) /usr/local/bin
