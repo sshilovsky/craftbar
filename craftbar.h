@@ -1,5 +1,4 @@
-typedef struct task
-{
+typedef struct task {
 	struct task *next;
 	Window win;
 	Pixmap icon;
@@ -10,30 +9,25 @@ typedef struct task
 	unsigned int focused:1;
 	unsigned int iconified:1;
 	unsigned int icon_copied:1;
-}
-task;
+} task;
 
-typedef struct taskbar
-{
+typedef struct taskbar {
 	Window win;
 	task *task_list;
 	int num_tasks;
 	int my_desktop;
 	unsigned int hidden:1;
 	unsigned int at_top:1;
-}
-taskbar;
+} taskbar;
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
-typedef struct _mwmhints
-{
+typedef struct _mwmhints {
 	unsigned long flags;
 	unsigned long functions;
 	unsigned long decorations;
 	long inputMode;
 	unsigned long status;
-}
-MWMHints;
+} MWMHints;
 
 #define WIN_STATE_STICKY          (1<<0)	/* everyone knows sticky */
 #define WIN_STATE_MINIMIZED       (1<<1)	/* ??? */
