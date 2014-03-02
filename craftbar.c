@@ -91,7 +91,8 @@ char *atom_names[] = {
 	"_NET_WM_DESKTOP",
 	"_NET_WM_NAME",
 	"UTF8_STRING",
-	"_NET_CLIENT_LIST_STACKING"
+	"_NET_CLIENT_LIST_STACKING",
+    "_NET_ACTIVE_WINDOW"
 };
 
 #define ATOM_COUNT (sizeof (atom_names) / sizeof (atom_names[0]))
@@ -119,6 +120,7 @@ Atom atoms[ATOM_COUNT];
 #define atom__NET_WM_NAME atoms[18]
 #define atom_UTF8_STRING atoms[19]
 #define atom__NET_CLIENT_LIST_STACKING atoms[20]
+#define atom__NET_ACTIVE_WINDOW atoms[21]
 
 void *get_prop_data(Window win, Atom prop, Atom type, int *items)
 {
@@ -955,6 +957,7 @@ void handle_propertynotify(taskbar * tb, Window win, Atom at)
 			    at == atom__NET_CLIENT_LIST_STACKING ||
 			    at == atom__NET_CURRENT_DESKTOP ||
 			    at == atom__WIN_CLIENT_LIST ||
+			    at == atom__NET_ACTIVE_WINDOW ||
 			    at == atom__WIN_WORKSPACE) {
 				taskbar_read_clientlist(tb);
 				gui_draw_taskbar(tb);
