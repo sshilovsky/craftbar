@@ -1,17 +1,30 @@
 CC = gcc
-C_FLAGS = -DHAVE_XPM -Wall -I/usr/X11R6/include -std=c99
-L_FLAGS = -L/usr/X11R6/lib -lX11 -lXpm
-EXTRA_CFLAGS = -g -Os
-PROGNAME = craftbar
+CFLAGS = -DHAVE_XPM -Wall -I/usr/X11R6/include -std=c99
+LFLAGS = -L/usr/X11R6/lib -lX11 -lXpm
+TARGET = craftbar
 
-$(PROGNAME): Makefile craftbar.c craftbar.h icon.xpm
-	$(CC) $(C_FLAGS) $(EXTRA_CFLAGS) craftbar.c -o $(PROGNAME) $(L_FLAGS)
+SOURCES = $(wildcard *.c)
+OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
+
+.PRECIOUS: $(TARGET) $(OBJECTS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TARGET): $(OBJECTS)
+	$(CC) -o $@ $^ $(LFLAGS)
 
 clean:
-	rm -f core *.o $(PROGNAME) nohup.out
+	rm -f *.o $(TARGET) .depend
 
-install: $(PROGNAME)
+install: $(TARGET)
 	install -d -m 755 $(DESTDIR)/usr/bin
-	install -m 755 $(PROGNAME) $(DESTDIR)/usr/bin
-	install -d -m 755 $(DESTDIR)/usr/share/man/man1
+	install -m 755 $(TARGET) $(DESTDIR)/usr/bin
 
+depend: .depend
+
+.depend: $(SOURCES)
+	rm -f ./.depend
+	$(CC) $(CFLAGS) -MM $^ -MF  ./.depend
+
+include .depend
