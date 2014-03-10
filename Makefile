@@ -1,10 +1,10 @@
 CC = gcc
-C_FLAGS = -DHAVE_XPM -Wall -I/usr/X11R6/include -std=c99
+C_FLAGS = -Wall -I/usr/X11R6/include -std=c99
 L_FLAGS = -L/usr/X11R6/lib -lX11 -lXpm
 EXTRA_CFLAGS = -g -Os
 PROGNAME = craftbar
 
-$(PROGNAME): Makefile craftbar.c craftbar.h icon.xpm
+$(PROGNAME): Makefile craftbar.c
 	$(CC) $(C_FLAGS) $(EXTRA_CFLAGS) craftbar.c -o $(PROGNAME) $(L_FLAGS)
 
 clean:
