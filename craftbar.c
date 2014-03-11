@@ -256,6 +256,12 @@ void grab_keys()
 	}
 }
 
+void handle_propertynotify(Window w, Atom prop) {
+    if(w == root_win && prop == atoms[_NET_SUPPORTED]) {
+        check_net_supported();
+    }
+}
+
 int
 #ifdef NOSTDLIB
 _start(void)
@@ -286,6 +292,9 @@ main(int argc, char *argv[])
 			case KeyPress:
 				handle_keypress(&ev.xkey);
 				break;
+            case PropertyNotify:
+                handle_propertynotify(ev.xproperty.window, ev.xproperty.atom);
+                break;
 				/*default:
 				   printf ("unknown evt type: %d\n", ev.type); */
 			}
