@@ -22,7 +22,6 @@ Gnome variant. This is determined by looking for the presence of the
 _NET_SUPPORTED property of the root window. Note that this is only used
 for communication with the WM, whether each client supports this protocol
 is up to the individual client. */
-int wm_use_ewmh;
 int scr_screen;
 khash_t(Window) * bindings;
 
@@ -33,14 +32,15 @@ char *atom_names[] = {
 	"_NET_ACTIVE_WINDOW"
 };
 
+#define _NET_SUPPORTED 0
+#define _NET_CURRENT_DESKTOP 1
+#define _NET_WM_DESKTOP 2
+#define _NET_ACTIVE_WINDOW 3
+
 #define ATOM_COUNT (sizeof (atom_names) / sizeof (atom_names[0]))
 
 Atom atoms[ATOM_COUNT];
-
-#define atom__NET_SUPPORTED atoms[0]
-#define atom__NET_CURRENT_DESKTOP atoms[1]
-#define atom__NET_WM_DESKTOP atoms[2]
-#define atom__NET_ACTIVE_WINDOW atoms[3]
+int supported[ATOM_COUNT];
 
 void *get_prop_data(Window win, Atom prop, Atom type, int *items)
 {
@@ -61,6 +61,37 @@ void *get_prop_data(Window win, Atom prop, Atom type, int *items)
 	return prop_data;
 }
 
+void load_atoms()
+{
+	XInternAtoms(dd, atom_names, ATOM_COUNT, False, atoms);
+
+	/* check if the WM supports EWMH
+	   Note that this is not reliable. When switching to a EWMH-unaware WM, it
+	   will not delete this property. Also, we can't react to changes in this
+	   without a restart. */
+    memset(supported, 0, sizeof(supported));
+
+    int items;
+    Atom *net_supported = (Atom*)get_prop_data(root_win, atoms[_NET_SUPPORTED],
+            XA_ATOM, &items);
+
+	if (net_supported) {
+        supported[_NET_SUPPORTED] = 1;
+
+        /* mark supported atoms */
+        for(int i = 0; i < ATOM_COUNT; i++) {
+            for(int j = 0; j < items; j++) {
+                if (net_supported[j] == atoms[i]) {
+                    supported[i] = 1;
+                    break;
+                }
+            }
+        }
+
+		XFree(net_supported);
+	}
+}
+
 void handle_error(Display * d, XErrorEvent * ev)
 {
 }
@@ -68,8 +99,6 @@ void handle_error(Display * d, XErrorEvent * ev)
 unsigned int numlock_mask = 0;
 unsigned int scrolllock_mask = 0;
 unsigned int capslock_mask = 0;
-
-#include <err.h>
 
 void handle_keypress(XKeyEvent * ev)
 {
@@ -87,11 +116,10 @@ void handle_keypress(XKeyEvent * ev)
 			return;
 
 		Window w = kh_value(bindings, k);
-        warnx("mapping 0x%8hX", (unsigned int)w);
 
         /* switch current desktop to the window */
         int desktop = -1;
-		void* data = get_prop_data(w, atom__NET_WM_DESKTOP, XA_CARDINAL, 0);
+		void* data = get_prop_data(w, atoms[_NET_WM_DESKTOP], XA_CARDINAL, 0);
         if(data) {
             desktop = *(int*)data;
             XFree(data);
@@ -101,7 +129,7 @@ void handle_keypress(XKeyEvent * ev)
             memset(&ev, 0, sizeof(ev));
             ev.xclient.type = ClientMessage;
             ev.xclient.window = root_win;
-            ev.xclient.message_type = atom__NET_CURRENT_DESKTOP;
+            ev.xclient.message_type = atoms[_NET_CURRENT_DESKTOP];
             ev.xclient.format = 32;
             ev.xclient.data.l[0] = desktop;
             XSendEvent(dd, root_win, 0, PropertyChangeMask, &ev);
@@ -122,7 +150,6 @@ void handle_keypress(XKeyEvent * ev)
 
 		XGetInputFocus(dd, &focused, &rev);
 		if (focused) {
-            warnx("remembering 0x%8hX", (unsigned int)focused);
 			kh_value(bindings, k) = focused;
 		}
 
@@ -206,7 +233,6 @@ main(int argc, char *argv[])
 {
 	bindings = kh_init(Window);
 	XEvent ev;
-	void *prop;
 
 	dd = XOpenDisplay(NULL);
 	if (!dd)
@@ -220,17 +246,7 @@ main(int argc, char *argv[])
 
 	XSetErrorHandler((XErrorHandler) handle_error);
 
-	XInternAtoms(dd, atom_names, ATOM_COUNT, False, atoms);
-
-	/* check if the WM supports EWMH
-	   Note that this is not reliable. When switching to a EWMH-unaware WM, it
-	   will not delete this property. Also, we can't react to changes in this
-	   without a restart. */
-	prop = get_prop_data(root_win, atom__NET_SUPPORTED, XA_ATOM, NULL);
-	if (prop) {
-		wm_use_ewmh = 1;
-		XFree(prop);
-	}
+    load_atoms();
 
 	while (1) {
 		while (XPending(dd)) {
