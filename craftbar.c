@@ -285,21 +285,19 @@ main(int argc, char *argv[])
 	XSelectInput(dd, root_win, PropertyChangeMask);
     check_net_supported();
 
-	while (1) {
-		while (XPending(dd)) {
-			XNextEvent(dd, &ev);
-			switch (ev.type) {
-			case KeyPress:
-				handle_keypress(&ev.xkey);
-				break;
-            case PropertyNotify:
-                handle_propertynotify(ev.xproperty.window, ev.xproperty.atom);
-                break;
-				/*default:
-				   printf ("unknown evt type: %d\n", ev.type); */
-			}
-		}
-	}
+    while (1) {
+        XNextEvent(dd, &ev);
+        switch (ev.type) {
+        case KeyPress:
+            handle_keypress(&ev.xkey);
+            break;
+        case PropertyNotify:
+            handle_propertynotify(ev.xproperty.window, ev.xproperty.atom);
+            break;
+            /*default:
+               printf ("unknown evt type: %d\n", ev.type); */
+        }
+    }
 
 	/*XCloseDisplay (dd);
 
