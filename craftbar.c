@@ -27,27 +27,9 @@ int scr_screen;
 khash_t(Window) * bindings;
 
 char *atom_names[] = {
-	"KWM_WIN_ICON",
-	"_MOTIF_WM_HINTS",
-	"_WIN_WORKSPACE",
-	"_WIN_HINTS",
-	"_WIN_LAYER",
-	"_NET_CLIENT_LIST",
-	"_WIN_CLIENT_LIST",
-	"_WIN_WORKSPACE_COUNT",
-	"_WIN_STATE",
-	"WM_STATE",
-	"_NET_NUMBER_OF_DESKTOPS",
-	"_NET_CURRENT_DESKTOP",
-	"_NET_WM_STATE",
-	"_NET_WM_STATE_ABOVE",
 	"_NET_SUPPORTED",
-	"_NET_WM_WINDOW_TYPE",
-	"_NET_WM_WINDOW_TYPE_DOCK",
+	"_NET_CURRENT_DESKTOP",
 	"_NET_WM_DESKTOP",
-	"_NET_WM_NAME",
-	"UTF8_STRING",
-	"_NET_CLIENT_LIST_STACKING",
 	"_NET_ACTIVE_WINDOW"
 };
 
@@ -55,28 +37,10 @@ char *atom_names[] = {
 
 Atom atoms[ATOM_COUNT];
 
-#define atom_KWM_WIN_ICON atoms[0]
-#define atom__MOTIF_WM_HINTS atoms[1]
-#define atom__WIN_WORKSPACE atoms[2]
-#define atom__WIN_HINTS atoms[3]
-#define atom__WIN_LAYER atoms[4]
-#define atom__NET_CLIENT_LIST atoms[5]
-#define atom__WIN_CLIENT_LIST atoms[6]
-#define atom__WIN_WORKSPACE_COUNT atoms[7]
-#define atom__WIN_STATE atoms[8]
-#define atom_WM_STATE atoms[9]
-#define atom__NET_NUMBER_OF_DESKTOPS atoms[10]
-#define atom__NET_CURRENT_DESKTOP atoms[11]
-#define atom__NET_WM_STATE atoms[12]
-#define atom__NET_WM_STATE_ABOVE atoms[13]
-#define atom__NET_SUPPORTED atoms[14]
-#define atom__NET_WM_WINDOW_TYPE atoms[15]
-#define atom__NET_WM_WINDOW_TYPE_DOCK atoms[16]
-#define atom__NET_WM_DESKTOP atoms[17]
-#define atom__NET_WM_NAME atoms[18]
-#define atom_UTF8_STRING atoms[19]
-#define atom__NET_CLIENT_LIST_STACKING atoms[20]
-#define atom__NET_ACTIVE_WINDOW atoms[21]
+#define atom__NET_SUPPORTED atoms[0]
+#define atom__NET_CURRENT_DESKTOP atoms[1]
+#define atom__NET_WM_DESKTOP atoms[2]
+#define atom__NET_ACTIVE_WINDOW atoms[3]
 
 void *get_prop_data(Window win, Atom prop, Atom type, int *items)
 {
@@ -105,6 +69,8 @@ unsigned int numlock_mask = 0;
 unsigned int scrolllock_mask = 0;
 unsigned int capslock_mask = 0;
 
+#include <err.h>
+
 void handle_keypress(XKeyEvent * ev)
 {
 	unsigned int keycode = ev->keycode;
@@ -121,6 +87,7 @@ void handle_keypress(XKeyEvent * ev)
 			return;
 
 		Window w = kh_value(bindings, k);
+        warnx("mapping 0x%8hX", (unsigned int)w);
 
         /* switch current desktop to the window */
         int desktop = -1;
@@ -144,6 +111,7 @@ void handle_keypress(XKeyEvent * ev)
 		XMapWindow(dd, w);
 		XRaiseWindow(dd, w);
 		XSetInputFocus(dd, w, RevertToNone, CurrentTime);
+        return;
 	}
 
 	if (modifiers == BIND_MASK) {
@@ -154,6 +122,7 @@ void handle_keypress(XKeyEvent * ev)
 
 		XGetInputFocus(dd, &focused, &rev);
 		if (focused) {
+            warnx("remembering 0x%8hX", (unsigned int)focused);
 			kh_value(bindings, k) = focused;
 		}
 
