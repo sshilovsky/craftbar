@@ -80,6 +80,26 @@ Window get_active_window()
     return w;
 }
 
+void set_active_window(Window w)
+{
+    if(supported[_NET_ACTIVE_WINDOW]) {
+        XEvent ev;
+        memset(&ev, 0, sizeof(ev));
+        ev.xclient.type = ClientMessage;
+        ev.xclient.window = w; // window to activate
+        ev.xclient.message_type = atoms[_NET_ACTIVE_WINDOW];
+        ev.xclient.format = 32;
+        ev.xclient.data.l[0] = 2; // i'm a pager
+        XSendEvent(dd, root_win, 0, PropertyChangeMask, &ev);
+        return;
+    }
+    
+    /* fallback if _NET_ACTIVE_WINDOW is unavailable */
+    XMapWindow(dd, w);
+    XRaiseWindow(dd, w);
+    XSetInputFocus(dd, w, RevertToNone, CurrentTime);
+}
+
 void load_atoms()
 {
 	XInternAtoms(dd, atom_names, ATOM_COUNT, False, atoms);
@@ -154,10 +174,7 @@ void handle_keypress(XKeyEvent * ev)
             XSendEvent(dd, root_win, 0, PropertyChangeMask, &ev);
         }
 
-        /* raise and focus the window */
-		XMapWindow(dd, w);
-		XRaiseWindow(dd, w);
-		XSetInputFocus(dd, w, RevertToNone, CurrentTime);
+        set_active_window(w);
         return;
 	}
 
