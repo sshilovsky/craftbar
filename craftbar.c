@@ -61,6 +61,14 @@ void *get_prop_data(Window win, Atom prop, Atom type, int *items)
 	return prop_data;
 }
 
+Window get_active_window()
+{
+    Window focused;
+    int rev;
+    XGetInputFocus(dd, &focused, &rev);
+    return focused;
+}
+
 void load_atoms()
 {
 	XInternAtoms(dd, atom_names, ATOM_COUNT, False, atoms);
@@ -144,12 +152,10 @@ void handle_keypress(XKeyEvent * ev)
 
 	if (modifiers == BIND_MASK) {
 		/* Remember this key to be bound to active window */
-		Window focused;
-		int rev, t;
-		khiter_t k = kh_put(Window, bindings, keycode, &t);
-
-		XGetInputFocus(dd, &focused, &rev);
+        Window focused = get_active_window();
 		if (focused) {
+            int t;
+            khiter_t k = kh_put(Window, bindings, keycode, &t);
 			kh_value(bindings, k) = focused;
 		}
 
