@@ -63,10 +63,21 @@ void *get_prop_data(Window win, Atom prop, Atom type, int *items)
 
 Window get_active_window()
 {
-    Window focused;
+    Window w;
+    if(supported[_NET_ACTIVE_WINDOW]) {
+        void* data = get_prop_data(root_win, atoms[_NET_ACTIVE_WINDOW], XA_WINDOW, 0);
+        if(data) {
+            w = *(Window*)data;
+            XFree(data);
+            return w;
+        }
+    }
+
+    /* fallback if _NET_ACTIVE_WINDOW is unavailable */
     int rev;
-    XGetInputFocus(dd, &focused, &rev);
-    return focused;
+    XGetInputFocus(dd, &w, &rev);
+    /* TODO remember top parent window of the focussed one */
+    return w;
 }
 
 void load_atoms()
