@@ -82,6 +82,7 @@ Window get_active_window()
 
 void set_active_window(Window w)
 {
+    XMapWindow(dd, w);
     if(supported[_NET_ACTIVE_WINDOW]) {
         XEvent ev;
         memset(&ev, 0, sizeof(ev));
@@ -95,7 +96,6 @@ void set_active_window(Window w)
     }
     
     /* fallback if _NET_ACTIVE_WINDOW is unavailable */
-    XMapWindow(dd, w);
     XRaiseWindow(dd, w);
     XSetInputFocus(dd, w, RevertToNone, CurrentTime);
 }
