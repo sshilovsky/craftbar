@@ -100,10 +100,8 @@ void set_active_window(Window w)
     XSetInputFocus(dd, w, RevertToNone, CurrentTime);
 }
 
-void load_atoms()
+void check_net_supported()
 {
-	XInternAtoms(dd, atom_names, ATOM_COUNT, False, atoms);
-
 	/* check if the WM supports EWMH
 	   Note that this is not reliable. When switching to a EWMH-unaware WM, it
 	   will not delete this property. Also, we can't react to changes in this
@@ -271,16 +269,15 @@ main(int argc, char *argv[])
 	dd = XOpenDisplay(NULL);
 	if (!dd)
 		return 0;
-	scr_screen = DefaultScreen(dd);
-	root_win = RootWindow(dd, scr_screen);
-
-	grab_keys(dd);
-	/* helps us catch windows closing/opening */
-	XSelectInput(dd, root_win, PropertyChangeMask);
-
 	XSetErrorHandler((XErrorHandler) handle_error);
 
-    load_atoms();
+	scr_screen = DefaultScreen(dd);
+	root_win = RootWindow(dd, scr_screen);
+	XInternAtoms(dd, atom_names, ATOM_COUNT, False, atoms);
+
+	grab_keys(dd);
+	XSelectInput(dd, root_win, PropertyChangeMask);
+    check_net_supported();
 
 	while (1) {
 		while (XPending(dd)) {
