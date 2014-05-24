@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -I/usr/X11R6/include -std=c99
-LFLAGS = -L/usr/X11R6/lib -lX11 -lXpm
+LFLAGS = -L/usr/X11R6/lib -lX11
 TARGET = craftbar
 
 SOURCES = $(wildcard *.c)
